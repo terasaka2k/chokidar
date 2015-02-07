@@ -486,7 +486,7 @@ function runTests (options) {
       });
 
       it('a pattern intersected by the other one', function(done) {
-        var watcher = chokidar.watch([fileA, getFixturePath('subdi*/file*')], options);
+        var watcher = chokidar.watch([getFixturePath('subdir/*ileA'), getFixturePath('subdir/file*')], options);
 
         var addSpy = sinon.spy();
         var readySpy = sinon.spy();
