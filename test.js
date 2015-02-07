@@ -473,6 +473,65 @@ function runTests (options) {
         });
       });
     });
+    describe('should correctly handle specific glob patterns,', function() {
+      var
+        subdir = getFixturePath('subdir'),
+        fileA = getFixturePath('subdir/fileA'),
+        fileB = getFixturePath('subdir/fileB');
+
+      before(function() {
+        fs.mkdirSync(subdir);
+        fs.writeFileSync(fileA, 'contentA');
+        fs.writeFileSync(fileB, 'contentB');
+      });
+
+      it('a pattern intersected by the other one', function(done) {
+        var watcher = chokidar.watch([fileA, getFixturePath('subdi*/file*')], options);
+
+        var addSpy = sinon.spy();
+        var readySpy = sinon.spy();
+        watcher.on('add', addSpy);
+        watcher.on('ready', readySpy);
+
+        delay(function() {
+          try {
+            addSpy.should.have.been.calledWith(fileA);
+            addSpy.should.have.been.calledWith(fileB);
+            addSpy.should.have.been.calledTwice;
+            readySpy.should.have.been.calledOnce;
+          } finally {
+            watcher.close();
+            done();
+          }
+        });
+      });
+
+      it('patterns intersecting each other', function(done) {
+        var watcher = chokidar.watch([getFixturePath('subdi*/*ile*'), getFixturePath('subdi*/file*')], options);
+
+        var addSpy = sinon.spy();
+        var readySpy = sinon.spy();
+        watcher.on('add', addSpy);
+        watcher.on('ready', readySpy);
+
+        delay(function() {
+          try {
+            addSpy.should.have.been.calledWith(fileA);
+            addSpy.should.have.been.calledWith(fileB);
+            addSpy.should.have.been.calledTwice;
+            readySpy.should.have.been.calledOnce;
+          } finally {
+            watcher.close();
+            done();
+          }
+        });
+      })
+      after(function() {
+        fs.unlinkSync(fileA);
+        fs.unlinkSync(fileB);
+        fs.rmdirSync(subdir);
+      });
+    });
   });
   describe('watch symlinks', function() {
     if (os === 'win32') return;
